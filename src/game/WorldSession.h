@@ -294,6 +294,7 @@ class MANGOS_DLL_SPEC WorldSession
 
         /// Handle the authentication waiting queue (to be completed)
         void SendAuthWaitQue(uint32 position);
+        void SendAuthResponse(uint8 code, bool queued, uint32 queuePos = 0);
 
         void SendNameQueryOpcode(Player* p);
         void SendNameQueryOpcodeFromDB(ObjectGuid guid);

@@ -32,13 +32,13 @@
 #include "WorldSession.h"
 
 /// List of Opcodes
-/// Max Opcode value in 4.3.4.15595 is 65535
+/// Max Opcode value in 5.4.8 18414 is 0x1FFF
 enum Opcodes
 {
-    MSG_WOW_CONNECTION                                    = 0x4F57, // 4.3.4 15595
-    SMSG_AUTH_CHALLENGE                                   = 0x4542, // 4.3.4 15595
-    CMSG_AUTH_SESSION                                     = 0x0449, // 4.3.4 15595
-    SMSG_AUTH_RESPONSE                                    = 0x5DB6, // 4.3.4 15595
+    MSG_WOW_CONNECTION                                    = 0x4F57, // 5.4.8 18414
+    SMSG_AUTH_CHALLENGE                                   = 0x0949, // 5.4.8 18414
+    CMSG_AUTH_SESSION                                     = 0x00B2, // 5.4.8 18414
+    SMSG_AUTH_RESPONSE                                    = 0x0ABA, // 5.4.8 18414
     MSG_NULL_ACTION                                       = 0x1001,
     CMSG_BOOTME                                           = 0x1002,
     CMSG_DBLOOKUP                                         = 0x1003,
@@ -311,7 +311,7 @@ enum Opcodes
     SMSG_TRIGGER_CINEMATIC                                = 0x6C27, // 4.3.4 15595
     CMSG_NEXT_CINEMATIC_CAMERA                            = 0x10FC,
     CMSG_COMPLETE_CINEMATIC                               = 0x10FD,
-    SMSG_TUTORIAL_FLAGS                                   = 0x0B35, // 4.3.4 15595
+    SMSG_TUTORIAL_FLAGS                                   = 0x1B90, // 5.4.8 18414
     CMSG_TUTORIAL_FLAG                                    = 0x6C26, // 4.3.4 15595
     CMSG_TUTORIAL_CLEAR                                   = 0x6515, // 4.3.4 15595
     CMSG_TUTORIAL_RESET                                   = 0x2726, // 4.3.4 15595
@@ -535,8 +535,8 @@ enum Opcodes
     SMSG_START_MIRROR_TIMER                               = 0x6824, // 4.3.4 15595
     SMSG_PAUSE_MIRROR_TIMER                               = 0x4015, // 4.3.4 15595
     SMSG_STOP_MIRROR_TIMER                                = 0x0B06, // 4.3.4 15595
-    CMSG_PING                                             = 0x444D, // 4.3.4 15595
-    SMSG_PONG                                             = 0x4D42, // 4.3.4 15595
+    CMSG_PING                                             = 0x0012, // 5.4.8 18414
+    SMSG_PONG                                             = 0x1969, // 5.4.8 18414
     SMSG_CLEAR_COOLDOWNS                                  = 0x59B4, // 4.3.4 15595
     SMSG_GAMEOBJECT_PAGETEXT                              = 0x2925, // 4.3.4 15595
     CMSG_SETSHEATHED                                      = 0x4326, // 4.3.4 15595
@@ -576,7 +576,7 @@ enum Opcodes
     SMSG_GMTICKET_CREATE                                  = 0x2107, // 4.3.4 15595
     CMSG_GMTICKET_UPDATETEXT                              = 0x0636, // 4.3.4 15595
     SMSG_GMTICKET_UPDATETEXT                              = 0x6535, // 4.3.4 15595
-    SMSG_ACCOUNT_DATA_TIMES                               = 0x4B05, // 4.3.4 15595
+    SMSG_ACCOUNT_DATA_TIMES                               = 0x162B, // 5.4.8 18414
     CMSG_REQUEST_ACCOUNT_DATA                             = 0x6505, // 4.3.4 15595
     CMSG_UPDATE_ACCOUNT_DATA                              = 0x4736, // 4.3.4 15595
     SMSG_UPDATE_ACCOUNT_DATA                              = 0x6837, // 4.3.4 15595
@@ -810,7 +810,7 @@ enum Opcodes
     SMSG_BATTLEGROUND_PLAYER_JOINED                       = 0x50B0, // 4.3.4 15595
     SMSG_BATTLEGROUND_PLAYER_LEFT                         = 0x59A6, // 4.3.4 15595
     CMSG_BATTLEMASTER_JOIN                                = 0x7902, // 4.3.4 15595
-    SMSG_ADDON_INFO                                       = 0x2C14, // 4.3.4 15595
+    SMSG_ADDON_INFO                                       = 0x160A, // 5.4.8 18414
     CMSG_PET_UNLEARN                                      = 0x12F1,
     SMSG_PET_UNLEARN_CONFIRM                              = 0x12F2,
     SMSG_PARTY_MEMBER_STATS_FULL                          = 0x0215, // 4.3.4 15595
@@ -1259,7 +1259,7 @@ enum Opcodes
     CMSG_RIDE_VEHICLE_INTERACT                            = 0x2705, // 4.3.4 15595
     CMSG_CONTROLLER_EJECT_PASSENGER                       = 0x6927, // 4.3.4 15595
     SMSG_PET_GUIDS                                        = 0x2D26, // 4.3.4 15595
-    SMSG_CLIENTCACHE_VERSION                              = 0x2734, // 4.3.4 15595
+    SMSG_CLIENTCACHE_VERSION                              = 0x002A, // 5.4.8 18414
     CMSG_CHANGE_GDF_ARENA_RATING                          = 0x14AD,
     CMSG_SET_ARENA_TEAM_RATING_BY_INDEX                   = 0x14AE,
     CMSG_SET_ARENA_TEAM_WEEKLY_GAMES                      = 0x14AF,
@@ -1343,7 +1343,7 @@ enum Opcodes
     SMSG_DEBUG_SERVER_GEO                                 = 0x14FD,
     SMSG_LOOT_UPDATE                                      = 0x14FE,
     UMSG_UPDATE_GROUP_INFO                                = 0x14FF,
-    CMSG_READY_FOR_ACCOUNT_DATA_TIMES                     = 0x2B16, // 4.3.4 15595
+    CMSG_READY_FOR_ACCOUNT_DATA_TIMES                     = 0x031C, // 5.4.8 18414
     CMSG_QUERY_GET_ALL_QUESTS                             = 0x2317, // 4.3.4 15595
     SMSG_ALL_QUESTS_COMPLETED                             = 0x6314, // 4.3.4 15595
     CMSG_GMLAGREPORT_SUBMIT                               = 0x1503,
@@ -1427,7 +1427,7 @@ enum Opcodes
     SMSG_DB_REPLY                                         = 0x38A4, // 4.3.4 15595
 };
 
-#define MAX_OPCODE_TABLE_SIZE 0xFFFF
+#define MAX_OPCODE_TABLE_SIZE 0x1FFF
 
 extern void InitializeOpcodes();
 

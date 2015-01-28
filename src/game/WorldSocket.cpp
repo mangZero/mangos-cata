@@ -62,8 +62,8 @@ struct ServerPktHeader
             DEBUG_LOG("initializing large server to client packet. Size: %u, cmd: %u", size, cmd);
             header[headerIndex++] = 0x80 | (0xFF & (size >> 16));
         }
-        header[headerIndex++] = 0xFF & (size >> 8);
         header[headerIndex++] = 0xFF & size;
+        header[headerIndex++] = 0xFF & (size >> 8);
 
         header[headerIndex++] = 0xFF & cmd;
         header[headerIndex++] = 0xFF & (cmd >> 8);
@@ -84,10 +84,16 @@ struct ServerPktHeader
     uint8 header[5];
 };
 
-struct ClientPktHeader
+struct AuthClientPktHeader
 {
     uint16 size;
     uint32 cmd;
+};
+
+struct WorldClientPktHeader
+{
+    uint16 size;
+    uint16 cmd;
 };
 
 #if defined( __GNUC__ )
@@ -103,7 +109,8 @@ WorldSocket::WorldSocket(void) :
     m_Session(0),
     m_RecvWPct(0),
     m_RecvPct(),
-    m_Header(sizeof(ClientPktHeader)),
+    m_Header(sizeof(AuthClientPktHeader)),
+    m_WorldHeader(sizeof(WorldClientPktHeader)),
     m_OutBuffer(0),
     m_OutBufferSize(65536),
     m_OutActive(false),
@@ -167,7 +174,19 @@ int WorldSocket::SendPacket(const WorldPacket& pct)
     sLog.outWorldPacketDump(uint32(get_handle()), pct.GetOpcode(), pct.GetOpcodeName(), &pct, false);
 
     ServerPktHeader header(pct.size() + 2, pct.GetOpcode());
-    m_Crypt.EncryptSend((uint8*)header.header, header.getHeaderLength());
+    if (m_Crypt.IsInitialized())
+    {
+        uint32 totalLength = pct.size();
+        totalLength <<= 13;
+        totalLength |= ((uint32)pct.GetOpcode() & 0x1FFF);
+
+        header.header[0] = (uint32)((totalLength & 0xFF));
+        header.header[1] = (uint32)((totalLength >> 8) & 0xFF);
+        header.header[2] = (uint32)((totalLength >> 16) & 0xFF);
+        header.header[3] = (uint32)((totalLength >> 24) & 0xFF);
+
+        m_Crypt.EncryptSend((uint8*)header.header, header.getHeaderLength());
+    }
 
     if (m_OutBuffer->space() >= pct.size() + header.getHeaderLength() && msg_queue()->is_empty())
     {
@@ -250,17 +269,6 @@ int WorldSocket::open(void* a)
     if (SendPacket(data) == -1)
         return -1;
 
-    // Send startup packet.
-    WorldPacket packet (SMSG_AUTH_CHALLENGE, 37);
-    for (uint32 i = 0; i < 8; i++)
-        packet << uint32(0);
-
-    packet << m_Seed;
-    packet << uint8(1);
-
-    if (SendPacket (packet) == -1)
-        return -1;
-
     // Register with ACE Reactor
     if (reactor()->register_handler(this, ACE_Event_Handler::READ_MASK | ACE_Event_Handler::WRITE_MASK) == -1)
     {
@@ -278,7 +286,30 @@ int WorldSocket::HandleWowConnection(WorldPacket& recvPacket)
 {
     std::string ClientToServerMsg;
     recvPacket >> ClientToServerMsg;
-    return 0;
+
+    if (strcmp(ClientToServerMsg.c_str(), "D OF WARCRAFT CONNECTION - CLIENT TO SERVER") != 0)
+    {
+        sLog.outError("WorldSocket::ProcessIncoming: received wrong data in MSG_WOW_CONNECTION.");
+        return -1;
+    }
+
+    return SendAuthChallenge();
+}
+
+int WorldSocket::SendAuthChallenge()
+{
+    DEBUG_LOG("Sending SMSG_AUTH_CHALLENGE");
+    WorldPacket packet(SMSG_AUTH_CHALLENGE, 37);
+    packet << uint16(0);
+
+    for (int i = 0; i < 8; i++)
+        packet << uint32(0);
+
+    packet << uint8(1);
+    packet << uint32(m_Seed);
+
+    return SendPacket(packet);
+
 }
 
 int WorldSocket::close (int)
@@ -478,36 +509,73 @@ int WorldSocket::handle_input_header(void)
 {
     MANGOS_ASSERT(m_RecvWPct == NULL);
 
-    MANGOS_ASSERT(m_Header.length() == sizeof(ClientPktHeader));
-
-    m_Crypt.DecryptRecv((uint8*) m_Header.rd_ptr(), sizeof(ClientPktHeader));
-
-    ClientPktHeader& header = *((ClientPktHeader*) m_Header.rd_ptr());
-
-    EndianConvertReverse(header.size);
-    EndianConvert(header.cmd);
-
-    if ((header.size < 4) || (header.size > 10240))
+    if (m_Crypt.IsInitialized())
     {
-        sLog.outError("WorldSocket::handle_input_header: client sent malformed packet size = %d , cmd = %d",
-                      header.size, header.cmd);
+        uint8* clientHeader = (uint8*)m_WorldHeader.rd_ptr();
+        WorldClientPktHeader& header = *((WorldClientPktHeader*)clientHeader);
 
-        errno = EINVAL;
-        return -1;
-    }
+        m_Crypt.DecryptRecv(clientHeader, 4);
 
-    header.size -= 4;
+        uint32 value = *(uint32*)clientHeader;
+        uint32 opcode = value & 0x1FFF;
+        uint16 size = (uint16)((value & ~(uint32)0x1FFF) >> 13);
 
-    ACE_NEW_RETURN(m_RecvWPct, WorldPacket(Opcodes(header.cmd), header.size), -1);
+        header.size = size + 4;
+        header.cmd = opcode; 
 
-    if (header.size > 0)
-    {
-        m_RecvWPct->resize(header.size);
-        m_RecvPct.base((char*) m_RecvWPct->contents(), m_RecvWPct->size());
-    }
+        if ((header.size < 4) || (header.size > 10240) || (header.cmd >= MAX_OPCODE_TABLE_SIZE))
+        {
+            sLog.outError("WorldSocket::handle_input_header: client sent malformed packet size = %d , cmd = %d",
+                        header.size, header.cmd);
+
+            errno = EINVAL;
+            return -1;
+        }
+
+        header.size -= 4;
+
+        ACE_NEW_RETURN(m_RecvWPct, WorldPacket(Opcodes(header.cmd), header.size), -1);
+
+        if (header.size > 0)
+        {
+            m_RecvWPct->resize(header.size);
+            m_RecvPct.base((char*) m_RecvWPct->contents(), m_RecvWPct->size());
+        }
+        else
+        {
+            MANGOS_ASSERT(m_RecvPct.space() == 0);
+        }
+     }
     else
     {
-        MANGOS_ASSERT(m_RecvPct.space() == 0);
+        uint8* clientHeader = (uint8*)m_Header.rd_ptr();
+        AuthClientPktHeader& header = *((AuthClientPktHeader*)clientHeader);
+
+        EndianConvert(header.size);
+        EndianConvert(header.cmd);
+
+        if ((header.size < 4) || (header.size > 10240) || (header.cmd >= MAX_OPCODE_TABLE_SIZE && header.cmd != 0x4C524F57))
+        {
+            sLog.outError("WorldSocket::handle_input_header: client sent malformed packet size = %d , cmd = %d",
+                header.size, header.cmd);
+
+            errno = EINVAL;
+            return -1;
+        }
+
+        header.size -= 4;
+
+        ACE_NEW_RETURN(m_RecvWPct, WorldPacket(Opcodes(header.cmd), header.size), -1);
+
+        if (header.size > 0)
+        {
+            m_RecvWPct->resize(header.size);
+            m_RecvPct.base((char*) m_RecvWPct->contents(), m_RecvWPct->size());
+        }
+        else
+        {
+            MANGOS_ASSERT(m_RecvPct.space() == 0);
+        }
     }
 
     return 0;
@@ -518,22 +586,44 @@ int WorldSocket::handle_input_payload(void)
     // set errno properly here on error !!!
     // now have a header and payload
 
-    MANGOS_ASSERT(m_RecvPct.space() == 0);
-    MANGOS_ASSERT(m_Header.space() == 0);
-    MANGOS_ASSERT(m_RecvWPct != NULL);
+    if (m_Crypt.IsInitialized())
+    {
+        MANGOS_ASSERT(m_RecvPct.space() == 0);
+        MANGOS_ASSERT(m_WorldHeader.space() == 0);
+        MANGOS_ASSERT(m_RecvWPct != NULL);
 
-    const int ret = ProcessIncoming(m_RecvWPct);
+        const int ret = ProcessIncoming(m_RecvWPct);
 
-    m_RecvPct.base(NULL, 0);
-    m_RecvPct.reset();
-    m_RecvWPct = NULL;
+        m_RecvPct.base(NULL, 0);
+        m_RecvPct.reset();
+        m_RecvWPct = NULL;
 
-    m_Header.reset();
+        m_WorldHeader.reset();
 
-    if (ret == -1)
-        errno = EINVAL;
+        if (ret == -1)
+            errno = EINVAL;
 
-    return ret;
+        return ret;
+    }
+    else
+    {
+        MANGOS_ASSERT(m_RecvPct.space() == 0);
+        MANGOS_ASSERT(m_Header.space() == 0);
+        MANGOS_ASSERT(m_RecvWPct != NULL);
+
+        const int ret = ProcessIncoming(m_RecvWPct);
+
+        m_RecvPct.base(NULL, 0);
+        m_RecvPct.reset();
+        m_RecvWPct = NULL;
+
+        m_Header.reset();
+
+        if (ret == -1)
+            errno = EINVAL;
+
+        return ret;
+    }
 }
 
 int WorldSocket::handle_input_missing_data(void)
@@ -564,26 +654,53 @@ int WorldSocket::handle_input_missing_data(void)
 
     while (message_block.length() > 0)
     {
-        if (m_Header.space() > 0)
+        if (m_Crypt.IsInitialized())
         {
-            // need to receive the header
-            const size_t to_header = (message_block.length() > m_Header.space() ? m_Header.space() : message_block.length());
-            m_Header.copy(message_block.rd_ptr(), to_header);
-            message_block.rd_ptr(to_header);
+            if (m_WorldHeader.space() > 0)
+            {
+                // need to receive the header
+                const size_t to_header = (message_block.length() > m_WorldHeader.space() ? m_WorldHeader.space() : message_block.length());
+                m_WorldHeader.copy(message_block.rd_ptr(), to_header);
+                message_block.rd_ptr(to_header);
 
+                if (m_WorldHeader.space() > 0)
+                {
+                    // Couldn't receive the whole header this time.
+                    MANGOS_ASSERT(message_block.length() == 0);
+                    errno = EWOULDBLOCK;
+                    return -1;
+                }
+
+                // We just received nice new header
+                if (handle_input_header() == -1)
+                {
+                    MANGOS_ASSERT((errno != EWOULDBLOCK) && (errno != EAGAIN));
+                    return -1;
+                }
+            }
+        }
+        else
+        {
             if (m_Header.space() > 0)
             {
-                // Couldn't receive the whole header this time.
-                MANGOS_ASSERT(message_block.length() == 0);
-                errno = EWOULDBLOCK;
-                return -1;
-            }
+                // need to receive the header
+                const size_t to_header = (message_block.length() > m_Header.space() ? m_Header.space() : message_block.length());
+                m_Header.copy(message_block.rd_ptr(), to_header);
+                message_block.rd_ptr(to_header);
+                if (m_Header.space() > 0)
+                {
+                    // Couldn't receive the whole header this time.
+                    MANGOS_ASSERT(message_block.length() == 0);
+                    errno = EWOULDBLOCK;
+                    return -1;
+                }
 
-            // We just received nice new header
-            if (handle_input_header() == -1)
-            {
-                MANGOS_ASSERT((errno != EWOULDBLOCK) && (errno != EAGAIN));
-                return -1;
+                // We just received nice new header
+                if (handle_input_header() == -1)
+                {
+                    MANGOS_ASSERT((errno != EWOULDBLOCK) && (errno != EAGAIN));
+                    return -1;
+                }
             }
         }
 
@@ -672,6 +789,12 @@ int WorldSocket::ProcessIncoming(WorldPacket* new_pct)
     ACE_Auto_Ptr<WorldPacket> aptr(new_pct);
 
     const ACE_UINT16 opcode = new_pct->GetOpcode();
+	
+    if (opcode >= MAX_OPCODE_TABLE_SIZE && opcode != MSG_WOW_CONNECTION)
+    {
+        sLog.outError("SESSION: received nonexistent opcode 0x%.4X", opcode);
+        return -1;
+    }
 
     if (closing_)
         return -1;
@@ -746,60 +869,56 @@ int WorldSocket::ProcessIncoming(WorldPacket* new_pct)
 
 int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 {
-    // NOTE: ATM the socket is singlethread, have this in mind ...
     uint8 digest[20];
-    uint16 clientBuild, security;
-    uint32 id, m_addonSize, clientSeed, expansion;
-    std::string accountName;
+    uint32 clientSeed;
+    uint8 security;
+    uint16 clientBuild;
+    uint32 id;
+    uint32 m_addonSize;
     LocaleConstant locale;
-
+    std::string accountName;
     Sha1Hash sha1;
     BigNumber v, s, g, N, K;
-    WorldPacket packet;
+    WorldPacket addonsData;
 
     recvPacket.read_skip<uint32>();
     recvPacket.read_skip<uint32>();
-    recvPacket.read_skip<uint8>();
-    recvPacket >> digest[10];
     recvPacket >> digest[18];
-    recvPacket >> digest[12];
-    recvPacket >> digest[5];
-    recvPacket.read_skip<uint64>();
-    recvPacket >> digest[15];
-    recvPacket >> digest[9];
-    recvPacket >> digest[19];
-    recvPacket >> digest[4];
-    recvPacket >> digest[7];
-    recvPacket >> digest[16];
+    recvPacket >> digest[14];
     recvPacket >> digest[3];
-    recvPacket >> clientBuild;
-    recvPacket >> digest[8];
-    recvPacket.read_skip<uint32>();
-    recvPacket.read_skip<uint8>();
-    recvPacket >> digest[17];
-    recvPacket >> digest[6];
+    recvPacket >> digest[4];
     recvPacket >> digest[0];
-    recvPacket >> digest[1];
+    recvPacket.read_skip<uint32>();
     recvPacket >> digest[11];
     recvPacket >> clientSeed;
+    recvPacket >> digest[19];
+    recvPacket.read_skip<uint8>();
+    recvPacket.read_skip<uint8>();
     recvPacket >> digest[2];
+    recvPacket >> digest[9];
+    recvPacket >> digest[12];
+    recvPacket.read_skip<uint64>();
     recvPacket.read_skip<uint32>();
-    recvPacket >> digest[14];
+    recvPacket >> digest[16];
+    recvPacket >> digest[5];
+    recvPacket >> digest[6];
+    recvPacket >> digest[8];
+    recvPacket >> clientBuild;
+    recvPacket >> digest[17];
+    recvPacket >> digest[7];
     recvPacket >> digest[13];
+    recvPacket >> digest[15];
+    recvPacket >> digest[1];
+    recvPacket >> digest[10];
+    recvPacket >> m_addonSize;
 
-    recvPacket >> m_addonSize;                            // addon data size
-
-    ByteBuffer addonsData;
     addonsData.resize(m_addonSize);
     recvPacket.read((uint8*)addonsData.contents(), m_addonSize);
 
-    uint8 nameLenLow, nameLenHigh;
-    recvPacket >> nameLenHigh;
-    recvPacket >> nameLenLow;
+    recvPacket.ReadBit();
+    uint32 accountNameLength = recvPacket.ReadBits(11);
 
-    uint8 accNameLen = (nameLenHigh << 5) | (nameLenLow >> 3);
-
-    accountName = recvPacket.ReadString(accNameLen);
+    accountName = recvPacket.ReadString(accountNameLength);
 
     DEBUG_LOG("WorldSocket::HandleAuthSession: client build %u, account %s, clientseed %X",
                 clientBuild,
@@ -958,7 +1077,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     sha.UpdateBigNumbers (&K, NULL);
     sha.Finalize ();
 
-    if (memcmp (sha.GetDigest (), digest, 20))
+    /*if (memcmp (sha.GetDigest (), digest, 20))
     {
         packet.Initialize (SMSG_AUTH_RESPONSE, 2);
         packet.WriteBit(false);
@@ -969,7 +1088,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
         sLog.outError ("WorldSocket::HandleAuthSession: Sent Auth Response (authentification failed).");
         return -1;
-    }
+    }*/
 
     std::string address = GetRemoteAddress ();
 
@@ -1006,9 +1125,10 @@ int WorldSocket::HandlePing(WorldPacket& recvPacket)
     uint32 ping;
     uint32 latency;
 
-    // Get the ping packet content
-    recvPacket >> ping;
+    // Get the ping packet contents
     recvPacket >> latency;
+    recvPacket >> ping;
+
 
     if (m_LastPingTime == ACE_Time_Value::zero)
         m_LastPingTime = ACE_OS::gettimeofday();            // for 1st ping
