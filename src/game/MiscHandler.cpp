@@ -399,10 +399,27 @@ void WorldSession::HandleSetTargetOpcode(WorldPacket& recv_data)
         _player->GetReputationMgr().SetVisible(factionTemplateEntry);
 }
 
-void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
+void WorldSession::HandleSetSelectionOpcode(WorldPacket& recvData)
 {
     ObjectGuid guid;
-    recv_data >> guid;
+
+    guid[7] = recvData.ReadBit();
+    guid[6] = recvData.ReadBit();
+    guid[5] = recvData.ReadBit();
+    guid[4] = recvData.ReadBit();
+    guid[3] = recvData.ReadBit();
+    guid[2] = recvData.ReadBit();
+    guid[1] = recvData.ReadBit();
+    guid[0] = recvData.ReadBit();
+
+    recvData.ReadByteSeq(guid[0]);
+    recvData.ReadByteSeq(guid[7]);
+    recvData.ReadByteSeq(guid[3]);
+    recvData.ReadByteSeq(guid[5]);
+    recvData.ReadByteSeq(guid[1]);
+    recvData.ReadByteSeq(guid[4]);
+    recvData.ReadByteSeq(guid[6]);
+    recvData.ReadByteSeq(guid[2]);
 
     _player->SetSelectionGuid(guid);
 
@@ -1264,7 +1281,8 @@ void WorldSession::HandleRealmSplitOpcode(WorldPacket& recv_data)
     // 0x0 realm normal
     // 0x1 realm split
     // 0x2 realm split pending
-    data << split_date;
+    data.WriteBits(split_date.size(), 7);
+    data.WriteString(split_date);
     SendPacket(&data);
     // DEBUG_LOG("response sent %u", unk);
 }

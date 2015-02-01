@@ -93,14 +93,14 @@ enum Opcodes
     CMSG_AUTH_SRP6_BEGIN                                  = 0x1034,
     CMSG_AUTH_SRP6_PROOF                                  = 0x1035,
     CMSG_AUTH_SRP6_RECODE                                 = 0x1036,
-    CMSG_CHAR_CREATE                                      = 0x4A36, // 4.3.4 15595
-    CMSG_CHAR_ENUM                                        = 0x0502, // 4.3.4 15595
-    CMSG_CHAR_DELETE                                      = 0x6425, // 4.3.4 15595
+    CMSG_CHAR_CREATE                                      = 0x0F1D, // 5.4.8 18414
+    CMSG_CHAR_ENUM                                        = 0x00E0, // 5.4.8 18414
+    CMSG_CHAR_DELETE                                      = 0x04E2, // 5.4.8 18414
     SMSG_AUTH_SRP6_RESPONSE                               = 0x103A,
-    SMSG_CHAR_CREATE                                      = 0x2D05, // 4.3.4 15595
+    SMSG_CHAR_CREATE                                      = 0x11C3, // 5.4.8 18414
     SMSG_CHAR_ENUM                                        = 0x10B0, // 4.3.4 15595
-    SMSG_CHAR_DELETE                                      = 0x0304, // 4.3.4 15595
-    CMSG_PLAYER_LOGIN                                     = 0x05B1, // 4.3.4 15595
+    SMSG_CHAR_DELETE                                      = 0x0C9F, // 5.4.8 18414
+    CMSG_PLAYER_LOGIN                                     = 0x158F, // 5.4.8 18414
     SMSG_NEW_WORLD                                        = 0x79B1, // 4.3.4 15595
     SMSG_TRANSFER_PENDING                                 = 0x18A6, // 4.3.4 15595
     SMSG_TRANSFER_ABORTED                                 = 0x0537, // 4.3.4 15595
@@ -375,7 +375,7 @@ enum Opcodes
     SMSG_CHANNEL_UPDATE                                   = 0x2417, // 4.3.4 15595
     CMSG_CANCEL_CHANNELLING                               = 0x6C25, // 4.3.4 15595
     SMSG_AI_REACTION                                      = 0x0637, // 4.3.4 15595
-    CMSG_SET_SELECTION                                    = 0x0506, // 4.3.4 15595
+    CMSG_SET_SELECTION                                    = 0x0740, // 5.4.8 18414
     CMSG_DELETEEQUIPMENT_SET                              = 0x4D07, // 4.3.4 15595
     CMSG_INSTANCE_LOCK_RESPONSE                           = 0x1140,
     CMSG_DEBUG_PASSIVE_AURA                               = 0x1141,
@@ -620,7 +620,7 @@ enum Opcodes
     CMSG_GUILD_ADD_RANK                                   = 0x3030, // 4.3.4 15595
     CMSG_GUILD_DEL_RANK                                   = 0x3234, // 4.3.4 15595
     CMSG_GUILD_SET_NOTE                                   = 0x1233, // 4.3.4 15595
-    SMSG_LOGIN_VERIFY_WORLD                               = 0x2005, // 4.3.4 15595
+    SMSG_LOGIN_VERIFY_WORLD                               = 0x1C0F, // 5.4.8 18414
     CMSG_CLEAR_EXPLORATION                                = 0x1238,
     CMSG_SEND_MAIL                                        = 0x0523, // 4.3.4 15595
     SMSG_SEND_MAIL_RESULT                                 = 0x4927, // 4.3.4 15595
@@ -888,7 +888,7 @@ enum Opcodes
     SMSG_DEFENSE_MESSAGE                                  = 0x0314, // 4.3.4 15595
     SMSG_WORLD_SERVER_INFO                                = 0x31A2, // 4.3.4 15595
     MSG_GM_RESETINSTANCELIMIT                             = 0x133D,
-    SMSG_MOTD                                             = 0x0A35, // 4.3.4 15595
+    SMSG_MOTD                                             = 0x183B, // 5.4.8 18414
     SMSG_MOVE_SET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY     = 0x133F,
     SMSG_MOVE_UNSET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY   = 0x1340,
     CMSG_MOVE_SET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY_ACK = 0x1341,
