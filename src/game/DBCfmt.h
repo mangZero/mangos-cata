@@ -19,37 +19,37 @@
 #ifndef MANGOS_DBCSFRM_H
 #define MANGOS_DBCSFRM_H
 
-const char Achievementfmt[]="niiissiiiiisii";
+const char Achievementfmt[]="niiissiiiiisiix"; //18414
 const char AchievementCriteriafmt[]="niiiiiiiixsiiiiixxxxxxx";
-const char AreaTableEntryfmt[]="iiinixxxxxisiiiiixxxxxxxxx";
+const char AreaTableEntryfmt[]="iiinixxxxxxxisiiiiixxxxxxxxxxx"; //18414
 const char AreaGroupEntryfmt[]="niiiiiii";
-const char AreaTriggerEntryfmt[]="nifffxxxfffff";
+const char AreaTriggerEntryfmt[]="nifffxxxfffffxxx"; //18414
 const char ArmorLocationfmt[]="nfffff";
 const char AuctionHouseEntryfmt[]="niiix";
 const char BankBagSlotPricesEntryfmt[]="ni";
 const char BarberShopStyleEntryfmt[]="nixxxiii";
-const char BattlemasterListEntryfmt[]="niiiiiiiiixsiiiiiiii";
+const char BattlemasterListEntryfmt[]="niiiiiiiiiiiiiiiiixsiiiiiiiixx"; //18414
 const char CharStartOutfitEntryfmt[]="diiiiiiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char CharTitlesEntryfmt[]="nxsxix";
 const char ChatChannelsEntryfmt[]="iixsx";
                                                             // ChatChannelsEntryfmt, index not used (more compact store)
-const char ChrClassesEntryfmt[]="nixsxxxixiiiii";
-const char ChrRacesEntryfmt[]="nxixiixixxxxixsxxxxxixxx";
+const char ChrClassesEntryfmt[]="nixsxxxixiiiixxxxx"; //18414
+const char ChrRacesEntryfmt[]="nxixiixixxxxixsxxxxxixxxxxxxxxxxxxxx"; //18414
 const char ChrClassesXPowerTypesfmt[]="nii";
 const char CinematicSequencesEntryfmt[]="nxxxxxxxxx";
-const char CreatureDisplayInfofmt[]="nxxifxxxxxxxxxxxx";
+const char CreatureDisplayInfofmt[]="nxxifxxxxxxxxxxxxxxx"; //18414
 const char CreatureDisplayInfoExtrafmt[]="nixxxxxxxxxxxxxxxxxxx";
 const char CreatureFamilyfmt[]="nfifiiiiixsx";
 const char CreatureSpellDatafmt[]="niiiixxxx";
 const char DestructibleModelDataFmt[] = "nixxxixxxxixxxxixxxxixxx";
-const char DungeonEncounterfmt[]="niiiisxx";
+const char DungeonEncounterfmt[]="niiiisxxx"; //18414
 const char CreatureTypefmt[]="nxx";
-const char CurrencyTypesfmt[]="nisxxxxiiix";
+const char CurrencyTypesfmt[]="nisxxxxiiixx"; //18414
 const char DurabilityCostsfmt[]="niiiiiiiiiiiiiiiiiiiiiiiiiiiii";
 const char DurabilityQualityfmt[]="nf";
 const char EmotesEntryfmt[]="nxxiiixx";
 const char EmotesTextEntryfmt[]="nxixxxxxxxxxxxxxxxx";
-const char FactionEntryfmt[]="niiiiiiiiiiiiiiiiiiffixsxx";
+const char FactionEntryfmt[]="niiiiiiiiiiiiiiiiiiffixsxxxx"; //18414
 const char FactionTemplateEntryfmt[]="niiiiiiiiiiiii";
 const char GameObjectDisplayInfofmt[]="nsxxxxxxxxxxffffffxxx";
 const char GemPropertiesEntryfmt[]="nixxix";

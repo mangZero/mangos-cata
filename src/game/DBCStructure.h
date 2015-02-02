@@ -56,6 +56,7 @@ struct AchievementEntry
     DBCString   titleReward;                                // 11       m_reward_lang
     uint32      count;                                      // 12       m_minimum_criteria - need this count of completed criterias (own or referenced achievement criterias)
     uint32      refAchievement;                             // 13       m_shares_criteria - referenced achievement (counting of all completed criterias)
+                                                            // 14 5.x
 };
 
 struct AchievementCategoryEntry
@@ -526,23 +527,28 @@ struct AreaTableEntry
     uint32  zone;                                           // 2        m_ParentAreaID
     uint32  exploreFlag;                                    // 3        m_AreaBit
     uint32  flags;                                          // 4        m_flags
-                                                            // 5        m_SoundProviderPref
-                                                            // 6        m_SoundProviderPrefUnderwater
-                                                            // 7        m_AmbienceID
-                                                            // 8        m_ZoneMusic
-                                                            // 9        m_IntroSound
-    int32   area_level;                                     // 10       m_ExplorationLevel
-    DBCString area_name;                                    // 11       m_AreaName_lang
-    uint32  team;                                           // 12       m_factionGroupMask
-    uint32  LiquidTypeOverride[4];                          // 13-16    m_liquidTypeID[4]
-                                                            // 17       m_minElevation
-                                                            // 18       m_ambient_multiplier
-                                                            // 19       m_lightid
-    //uint32 unk20;                                         // 20 4.0.0
-    //uint32 unk21;                                         // 21 4.0.0
+                                                            // 5 5.x
+                                                            // 6        m_SoundProviderPref
+                                                            // 7       m_SoundProviderPrefUnderwater
+                                                            // 8        m_AmbienceID
+                                                            // 9        m_ZoneMusic
+                                                            // 10 5.x
+                                                            // 11        m_IntroSound
+    int32   area_level;                                     // 12       m_ExplorationLevel
+    DBCString area_name;                                    // 13       m_AreaName_lang
+    uint32  team;                                           // 14       m_factionGroupMask
+    uint32  LiquidTypeOverride[4];                          // 15-18    m_liquidTypeID[4]
+                                                            // 19       m_minElevation
+                                                            // 20       m_ambient_multiplier
+                                                            // 21       m_lightid
     //uint32 unk22;                                         // 22 4.0.0
     //uint32 unk23;                                         // 23 4.0.0
-    //uint32 unk24;                                         // 24 4.0.1, may be worldStateId
+    //uint32 unk24;                                         // 24 4.0.0
+    //uint32 unk25;                                         // 25 4.0.0
+    //uint32 unk26;                                         // 26 4.0.1, may be worldStateId
+                                                            // 27 5.x
+                                                            // 28 5.x
+                                                            // 29 5.x
 };
 
 struct AreaGroupEntry
@@ -567,6 +573,9 @@ struct AreaTriggerEntry
     float   box_y;                                          // 10       m_box_width
     float   box_z;                                          // 11       m_box_heigh
     float   box_orientation;                                // 12       m_box_yaw
+                                                            // 13 5.x
+                                                            // 14 5.x
+                                                            // 15 5.x
 };
 
 struct ArmorLocationEntry
@@ -604,19 +613,21 @@ struct BarberShopStyleEntry
 
 struct BattlemasterListEntry
 {
-    uint32  id;                                             // 0        m_ID
-    int32   mapid[8];                                       // 1-8      m_mapID[8]
-    uint32  type;                                           // 9        m_instanceType
-    //uint32 canJoinAsGroup;                                // 10       m_groupsAllowed
-    DBCString name;                                         // 11       m_name_lang
-    uint32 maxGroupSize;                                    // 12       m_maxGroupSize
-    uint32 HolidayWorldStateId;                             // 13       m_holidayWorldState
-    uint32 minLevel;                                        // 14,      m_minlevel (sync with PvPDifficulty.dbc content)
-    uint32 maxLevel;                                        // 15,      m_maxlevel (sync with PvPDifficulty.dbc content)
-    uint32 maxGroupSizeRated;                               // 16       4.0.1
-    uint32 minPlayers;                                      // 17       4.0.6.13596
-    uint32 maxPlayers;                                      // 18       4.0.1
-    uint32 rated;                                           // 19       4.0.3, value 2 for Rated Battlegrounds
+    uint32 id;                                              // 0 m_ID
+    int32 mapid[16];                                        // 1-16 m_mapID[10]
+    uint32 type;                                            // 17 m_instanceType
+    //uint32 canJoinAsGroup;                                // 18 m_groupsAllowed
+    DBCString name;                                         // 19 m_name_lang
+    uint32 maxGroupSize;                                    // 20 m_maxGroupSize
+    uint32 HolidayWorldStateId;                             // 21 m_holidayWorldState
+    uint32 minLevel;                                        // 22 m_minlevel (sync with PvPDifficulty.dbc content)
+    uint32 maxLevel;                                        // 23 m_maxlevel (sync with PvPDifficulty.dbc content)
+    uint32 maxGroupSizeRated;                               // 24 4.0.1
+    uint32 minPlayers;                                      // 25 4.0.6.13596
+    uint32 maxPlayers;                                      // 26 4.0.1
+    uint32 rated;                                           // 27 4.0.3, value 2 for Rated Battlegrounds
+    //uint32                                                // 28 5.4.8
+    //uint32                                                // 29 5.4.8
 };
 
 /*struct Cfg_CategoriesEntry
@@ -687,6 +698,11 @@ struct ChrClassesEntry
     uint32  apPerStr;                                       // 11       attack power per strength
     uint32  apPerAgi;                                       // 12       attack power per agility
     uint32  rapPerAgi;                                      // 13       ranged attack power per agility
+                                                            // 13 5.x
+                                                            // 14 5.x
+                                                            // 15 5.x
+                                                            // 16 5.x
+                                                            // 17 5.x
 };
 
 struct ChrRacesEntry
@@ -714,6 +730,7 @@ struct ChrRacesEntry
     //uint32                                                // 21 (23 for worgens)
     //uint32                                                // 22 4.0.0
     //uint32                                                // 23 4.0.0
+                                                            // 24-35 5.x
 };
 
 struct ChrPowerTypesEntry
@@ -758,6 +775,9 @@ struct CreatureDisplayInfoEntry
                                                             // 14       m_creatureGeosetData
                                                             // 15       m_objectEffectPackageID
                                                             // 16       all 0
+                                                            // 17 5.x
+                                                            // 18 5.x
+                                                            // 19 5.x
 };
 
 struct CreatureDisplayInfoExtraEntry
@@ -825,7 +845,8 @@ struct CurrencyTypesEntry
     uint32 TotalCap;                                        // 7
     uint32 WeekCap;                                         // 8
     uint32 Flags;                                           // 9
-    //DBCString description;                                // 10
+    //uint32                                                // 10     5.x
+    //DBCString description;                                // 11
 
     bool HasPrecision() const   { return Flags & CURRENCY_FLAG_HAS_PRECISION; }
     bool HasSeasonCount() const { return Flags & CURRENCY_FLAG_HAS_SEASON_COUNT; }
@@ -870,6 +891,7 @@ struct DungeonEncounterEntry
     DBCString encounterName;                                // 5 - encounter name
     //uint32 nameLangFlags;                                 // 6        m_name_lang_flags
     //uint32 spellIconID;                                   // 7        m_spellIconID
+    //uint32 unk2;                                          // 8        5.x
 };
 
 struct DurabilityCostsEntry
@@ -920,6 +942,8 @@ struct FactionEntry
     DBCString name;                                         // 23       m_name_lang
     //char*     description;                                // 24       m_description_lang
     //uint32                                                // 25
+    //uint      unk1                                        // 26 5.x
+    //uint      unk2                                        // 27 5.x
 
     // helpers
 
