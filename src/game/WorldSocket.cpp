@@ -928,13 +928,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     // Check the version of client trying to connect
     if(!IsAcceptableClientBuild(clientBuild))
     {
-        packet.Initialize (SMSG_AUTH_RESPONSE, 2);
-        packet.WriteBit(false);
-        packet.WriteBit(false);
-        packet << uint8 (AUTH_VERSION_MISMATCH);
-
-        SendPacket (packet);
-
+        SendAuthResponseError(AUTH_VERSION_MISMATCH);
         sLog.outError ("WorldSocket::HandleAuthSession: Sent Auth Response (version mismatch).");
         return -1;
     }
@@ -963,13 +957,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     // Stop if the account is not found
     if (!result)
     {
-        packet.Initialize (SMSG_AUTH_RESPONSE, 2);
-        packet.WriteBit(false);
-        packet.WriteBit(false);
-        packet << uint8 (AUTH_UNKNOWN_ACCOUNT);
-
-        SendPacket (packet);
-
+        SendAuthResponseError(AUTH_UNKNOWN_ACCOUNT);
         sLog.outError ("WorldSocket::HandleAuthSession: Sent Auth Response (unknown account).");
         return -1;
     }
@@ -1000,11 +988,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     {
         if (strcmp (fields[3].GetString(), GetRemoteAddress().c_str()))
         {
-            packet.Initialize (SMSG_AUTH_RESPONSE, 2);
-            packet.WriteBit(false);
-            packet.WriteBit(false);
-            packet << uint8 (AUTH_FAILED);
-            SendPacket (packet);
+            SendAuthResponseError(AUTH_FAILED);
 
             delete result;
             BASIC_LOG("WorldSocket::HandleAuthSession: Sent Auth Response (Account IP differs).");
@@ -1036,11 +1020,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
     if (banresult) // if account banned
     {
-        packet.Initialize (SMSG_AUTH_RESPONSE, 2);
-        packet.WriteBit(false);
-        packet.WriteBit(false);
-        packet << uint8 (AUTH_BANNED);
-        SendPacket (packet);
+        SendAuthResponseError(AUTH_BANNED);
 
         delete banresult;
 
@@ -1053,13 +1033,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
     if (allowedAccountType > SEC_PLAYER && AccountTypes(security) < allowedAccountType)
     {
-        WorldPacket Packet (SMSG_AUTH_RESPONSE, 2);
-        packet.WriteBit(false);
-        packet.WriteBit(false);
-        Packet << uint8 (AUTH_UNAVAILABLE);
-
-        SendPacket (packet);
-
+        SendAuthResponseError(AUTH_UNAVAILABLE);
         BASIC_LOG("WorldSocket::HandleAuthSession: User tries to login but his security level is not enough");
         return -1;
     }
@@ -1077,18 +1051,12 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     sha.UpdateBigNumbers (&K, NULL);
     sha.Finalize ();
 
-    /*if (memcmp (sha.GetDigest (), digest, 20))
+    if (memcmp (sha.GetDigest (), digest, 20))
     {
-        packet.Initialize (SMSG_AUTH_RESPONSE, 2);
-        packet.WriteBit(false);
-        packet.WriteBit(false);
-        packet << uint8 (AUTH_FAILED);
-
-        SendPacket (packet);
-
+        SendAuthResponseError(AUTH_FAILED);
         sLog.outError ("WorldSocket::HandleAuthSession: Sent Auth Response (authentification failed).");
         return -1;
-    }*/
+    }
 
     std::string address = GetRemoteAddress ();
 
@@ -1182,4 +1150,13 @@ int WorldSocket::HandlePing(WorldPacket& recvPacket)
     WorldPacket packet(SMSG_PONG, 4);
     packet << ping;
     return SendPacket(packet);
+}
+
+void WorldSocket::SendAuthResponseError(uint8 code)
+{
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
+        packet.WriteBit(0); // has account info
+        packet.WriteBit(0); // has queue info
+        packet << uint8(code);
+        SendPacket(packet);
 }
