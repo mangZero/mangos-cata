@@ -1899,18 +1899,18 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             if (!GetSession()->PlayerLogout())
             {
                 // send transfer packet to display load screen
-                WorldPacket data(SMSG_TRANSFER_PENDING, (4 + 4 + 4));
+                WorldPacket data(SMSG_TRANSFER_PENDING, 4 + 4 + 4);
                 data.WriteBit(0);       // unknown
-                if (m_transport)
+                data.WriteBit(m_transport != NULL);
+
+                data << uint32(mapid);				
+                
+				if (m_transport)
                 {
-                    data.WriteBit(1);   // has transport
                     data << uint32(GetMapId());
                     data << uint32(m_transport->GetEntry());
                 }
-                else
-                    data.WriteBit(0);   // has transport
 
-                data << uint32(mapid);
                 GetSession()->SendPacket(&data);
             }
 
@@ -1946,26 +1946,26 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             if (!GetSession()->PlayerLogout())
             {
                 // transfer finished, inform client to start load
-                WorldPacket data(SMSG_NEW_WORLD, 20);
+               WorldPacket data(SMSG_NEW_WORLD, 4 + 4 + 4 + 4 + 4);
                 if (m_transport)
-                {
                     data << float(transportPosition->x);
-                    data << float(NormalizeOrientation(transportPosition->o));
-                    data << float(transportPosition->y);
-                }
                 else
-                {
                     data << float(final_x);
-                    data << float(NormalizeOrientation(final_o));
-                    data << float(final_y);
-                }
-
+				
                 data << uint32(mapid);
-
-                if (m_transport)
+				
+               if (m_transport)
+			   {
+                    data << float(transportPosition->y);
                     data << float(m_movementInfo.GetTransportPos()->z);
+                    data << float(NormalizeOrientation(transportPosition->o));
+			    }
                 else
+				{
+                    data << float(final_y);
                     data << float(final_z);
+					data << float(NormalizeOrientation(final_o));
+				}
 
                 GetSession()->SendPacket(&data);
                 SendSavedInstances();
@@ -20072,10 +20072,10 @@ void Player::SendInitialPacketsBeforeAddToMap()
     GetSocial()->SendSocialList();
 
     // Homebind
-    WorldPacket data(SMSG_BINDPOINTUPDATE, 5 * 4);
-    data << m_homebindX << m_homebindY << m_homebindZ;
-    data << (uint32) m_homebindMapId;
+    WorldPacket data(SMSG_BINDPOINTUPDATE, 4 + 4 + 4 + 4 + 4);
+    data << m_homebindX << m_homebindZ << m_homebindY;
     data << (uint32) m_homebindAreaId;
+    data << (uint32) m_homebindMapId;
     GetSession()->SendPacket(&data);
 
     // SMSG_SET_PROFICIENCY
@@ -20088,6 +20088,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
     data.WriteBit(0);                                               // HasRestrictedLevel
     data.WriteBit(0);                                               // HasRestrictedMoney
     data.WriteBit(0);                                               // IneligibleForLoot
+    data.WriteBit(0);                                               // HasGroupSize
 
     //if (IneligibleForLoot)
     //    data << uint32(0);                                        // EncounterMask
@@ -20106,7 +20107,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
     SendInitialSpells();
 
     data.Initialize(SMSG_SEND_UNLEARN_SPELLS, 4);
-    data << uint32(0);                                      // count, for(count) uint32;
+    data.WriteBits(0, 22); // Count
     GetSession()->SendPacket(&data);
 
     SendInitialActionButtons();
@@ -20121,10 +20122,12 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     m_achievementMgr.SendAllAchievementData();
 
-    data.Initialize(SMSG_LOGIN_SETTIMESPEED, 4 + 4 + 4);
+    data.Initialize(SMSG_LOGIN_SETTIMESPEED, 20);
+    data << uint32(0);
+    data << uint32(secsToTimeBitFields(sWorld.GetGameTime()));
+    data << uint32(0);
     data << uint32(secsToTimeBitFields(sWorld.GetGameTime()));
     data << (float)0.01666667f;                             // game speed
-    data << uint32(0);                                      // added in 3.1.2
     GetSession()->SendPacket(&data);
 
     // SMSG_TALENTS_INFO x 2 for pet (unspent points and talents in separate packets...)

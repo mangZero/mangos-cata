@@ -101,11 +101,11 @@ enum Opcodes
     SMSG_CHAR_ENUM                                        = 0x10B0, // 4.3.4 15595
     SMSG_CHAR_DELETE                                      = 0x0C9F, // 5.4.8 18414
     CMSG_PLAYER_LOGIN                                     = 0x158F, // 5.4.8 18414
-    SMSG_NEW_WORLD                                        = 0x79B1, // 4.3.4 15595
-    SMSG_TRANSFER_PENDING                                 = 0x18A6, // 4.3.4 15595
+    SMSG_NEW_WORLD                                        = 0x1C3B, // 5.4.8 18414
+    SMSG_TRANSFER_PENDING                                 = 0x061B, // 5.4.8 18414
     SMSG_TRANSFER_ABORTED                                 = 0x0537, // 4.3.4 15595
     SMSG_CHARACTER_LOGIN_FAILED                           = 0x1042,
-    SMSG_LOGIN_SETTIMESPEED                               = 0x4D15, // 4.3.4 15595
+    SMSG_LOGIN_SETTIMESPEED                               = 0x082B, // 5.4.8 18414
     SMSG_GAMETIME_UPDATE                                  = 0x1044,
     CMSG_GAMETIME_SET                                     = 0x1045,
     SMSG_GAMETIME_SET                                     = 0x1046,
@@ -399,7 +399,7 @@ enum Opcodes
     SMSG_BREAK_TARGET                                     = 0x0105, // 4.3.4 15595
     CMSG_SAVE_PLAYER                                      = 0x1154,
     CMSG_SETDEATHBINDPOINT                                = 0x1155,
-    SMSG_BINDPOINTUPDATE                                  = 0x0527, // 4.3.4 15595
+    SMSG_BINDPOINTUPDATE                                  = 0x0E3B, // 5.4.8 18414
     CMSG_GETDEATHBINDZONE                                 = 0x1157,
     SMSG_BINDZONEREPLY                                    = 0x1158,
     SMSG_PLAYERBOUND                                      = 0x2516, // 4.3.4 15595
@@ -886,7 +886,7 @@ enum Opcodes
     SMSG_CHARACTER_PROFILE                                = 0x1339,
     SMSG_CHARACTER_PROFILE_REALM_CONNECTED                = 0x133A,
     SMSG_DEFENSE_MESSAGE                                  = 0x0314, // 4.3.4 15595
-    SMSG_WORLD_SERVER_INFO                                = 0x31A2, // 4.3.4 15595
+    SMSG_WORLD_SERVER_INFO                                = 0x0082, // 5.4.8 18414
     MSG_GM_RESETINSTANCELIMIT                             = 0x133D,
     SMSG_MOTD                                             = 0x183B, // 5.4.8 18414
     SMSG_MOVE_SET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY     = 0x133F,
@@ -1118,7 +1118,7 @@ enum Opcodes
     CMSG_QUERY_SERVER_BUCK_DATA                           = 0x141C,
     CMSG_CLEAR_SERVER_BUCK_DATA                           = 0x141D,
     SMSG_SERVER_BUCK_DATA                                 = 0x141E,
-    SMSG_SEND_UNLEARN_SPELLS                              = 0x4E25, // 4.3.4 15595
+    SMSG_SEND_UNLEARN_SPELLS                              = 0x0CE1, // 5.4.8 18414
     SMSG_PROPOSE_LEVEL_GRANT                              = 0x6114, // 4.3.4 15595
     CMSG_ACCEPT_LEVEL_GRANT                               = 0x0205, // 4.3.4 15595
     SMSG_REFER_A_FRIEND_FAILURE                           = 0x2037, // 4.3.4 15595
